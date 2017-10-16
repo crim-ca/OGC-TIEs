@@ -1,0 +1,69 @@
+version: '2'
+services:
+
+  pywps-emu-celery-caller:
+    image: fderue/emu_celery_caller
+    container_name: pywps-celery-caller
+    env_file:
+      - ./config/broker/amqp.env
+
+    environment:
+      HOSTNAME: localhost
+      HTTP_PORT: 5000
+      OUTPUT_PORT: 5001
+    ports:
+      - "5000:5000"
+      - "5001:5001"
+      - "8080:8080"
+      - "8000:8000"
+    links:
+      - rabbitmq
+
+    volumes:
+      - lib:/opt/birdhouse/var/lib
+      - log:/opt/birdhouse/var/log
+
+    restart: always
+
+  pywps-emu-celery-wn1:
+    image: fderue/emu_celery_worker
+    container_name: pywps-emu-celery-wn1
+    ports:
+      - "3001:8094"
+    env_file:
+     - ./config/broker/amqp.env
+    links:
+      - rabbitmq
+    volumes:
+      - lib:/opt/birdhouse/var/lib
+      - log:/opt/birdhouse/var/log
+    restart: always
+
+  pywps-emu-celery-wn2:
+    image: fderue/emu_celery_worker
+    container_name: pywps-emu-celery-wn2
+    ports:
+      - "3002:8094"
+    env_file:
+     - ./config/broker/amqp.env
+    links:
+      - rabbitmq
+    volumes:
+      - lib:/opt/birdhouse/var/lib
+      - log:/opt/birdhouse/var/log
+
+    restart: always
+
+  rabbitmq:
+    image: rabbitmq:3
+    container_name: rabbitmq
+    ports:
+      - "15672:15672"
+      - "35672:5672"
+    
+    restart: always
+
+
+volumes:
+  lib:
+  log:
