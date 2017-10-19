@@ -1,0 +1,71 @@
+version: '2'
+services:
+
+  pywps-emu-caller:
+    image: docker-registry.crim.ca/ogc/pywps-emu-caller:tie5
+    container_name: pywps-emu-caller
+    env_file:
+      - ./config/broker/amqp.env
+
+    environment:
+      HOSTNAME: localhost
+      HTTP_PORT: 5000
+      OUTPUT_PORT: 5001
+    ports:
+      - "5004:5000"
+      - "5001:5001"
+      - "8080:8080"
+      - "8000:8000"
+    links:
+      - rabbitmq
+
+    volumes:
+      - lib:/opt/birdhouse/var/lib
+      - log:/opt/birdhouse/var/log
+
+    restart: always
+
+  celery-worker-wn1:
+    image: docker-registry.crim.ca/ogc/celery-worker:tie5
+    container_name: celery-worker-wn1
+    env_file:
+     - ./config/broker/amqp.env
+    environment:
+      C_FORCE_ROOT: "true"
+
+    links:
+      - rabbitmq
+    volumes:
+      - lib:/opt/birdhouse/var/lib
+      - log:/opt/birdhouse/var/log
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+
+  celery-worker-wn2:
+    image: docker-registry.crim.ca/ogc/celery-worker:tie5
+    container_name: celery-worker-wn2
+    env_file:
+     - ./config/broker/amqp.env
+    environment:
+      C_FORCE_ROOT: "True"
+    links:
+      - rabbitmq
+    volumes:
+      - lib:/opt/birdhouse/var/lib
+      - log:/opt/birdhouse/var/log
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+
+  rabbitmq:
+    image: rabbitmq:3
+    container_name: rabbitmq
+    ports:
+      - "15672:15672"
+      - "35672:5672"
+    
+    restart: always
+
+
+volumes:
+  lib:
+  log:
