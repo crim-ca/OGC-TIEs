@@ -7,7 +7,8 @@ ENV PYTHON_MODULE Service_HelloWorld
 
 #Prepare required files
 RUN mkdir $SERVICE_DIR
-RUN mkdir /data
+RUN mkdir /data /inputs /outputs /status
+
 COPY ./ $SERVICE_DIR/
    
 #Setup the working dir and config
